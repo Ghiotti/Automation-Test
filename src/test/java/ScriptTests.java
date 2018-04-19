@@ -1,12 +1,17 @@
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import sun.misc.IOUtils;
+import sun.nio.ch.IOUtil;
+import sun.nio.cs.UTF_32;
 
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Array;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -17,15 +22,15 @@ import java.util.stream.Collectors;
 @RunWith(JUnitParamsRunner.class)
 public class ScriptTests {
 
-    @Test
     @Parameters(method = "getScripts")
+    @Test
     public void getScriptTest(File file) {
-        executeScript(file);
-
+        int resultado = executeScript(file);
+        Assert.assertEquals(0, resultado);
     }
 
     public List getScripts() {
-        return loadScripts("C:\\Users\\FGHIOTTI\\Desktop\\Test");
+        return loadScripts("/home/fghiotti/Incluit/scripts/Test");
     }
 
     public List loadScripts(String dir) {
@@ -45,12 +50,22 @@ public class ScriptTests {
         return scripts;
     }
 
-    public void executeScript(File script) {
-        String asd = "C:\\Program Files\\Git\\git-bash.exe -c " + script.getAbsolutePath();
+    public int executeScript(File script) {
+        String [] scriptName = {script.getAbsolutePath()};
+        Runtime r = Runtime.getRuntime();
+        int resultado;
         try {
-            Process pb = new Runtime.getRuntime().exec(asd);
+            Process p = r.exec(scriptName);
+            StringWriter writer = new StringWriter();
+            p.waitFor();
+            resultado = p.exitValue();
+            org.apache.commons.io.IOUtils.copy(p.getInputStream(), writer);
+            String theString = writer.toString();
+            System.out.println(theString);
         } catch (Exception e) {
             System.err.println(e.getStackTrace());
+            resultado = 1;
         }
+        return resultado;
     }
 }
